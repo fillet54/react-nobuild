@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "react": "/js/react/umd/react.production.min.js",
-    "react-dom": "/js/react-dom/umd/react-dom.production.min.js",
-    "react-is": "/js/react-is/umd/react-is.production.min.js",
-    "styled-components": "/js/styled-components/dist/styled-components.esm.js"
-  }
-}

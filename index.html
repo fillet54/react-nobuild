@@ -1,24 +1,62 @@
 <!DOCTYPE html>
 <html>
-<body>
+  <body>
+  
+    <div id="root"></div>
+    
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "/js/react/umd/react.production.min.js",
+        "react-dom": "/js/react-dom/umd/react-dom.production.min.js"
+      }
+    }
+    </script>
+    
+    <script type="module">
 
-<div id="root"></div>
-
-
-<!--
-	<script defer src="/js/es-module-shims/dist/es-module-shims.js"></script>
--->
-
-<script type="importmap">
-{
-  "imports": {
-    "react": "/js/react/umd/react.production.min.js",
-    "react-dom": "/js/react-dom/umd/react-dom.production.min.js"
-  }
-}
-</script>
-
-<script type="module" src="/js/index.js"></script>
-
-</body>
+       if ('serviceWorker' in navigator) {
+           (async () => {
+       
+               try {
+       
+                   const config = {
+                       exportsMap: {
+                           'react': {
+                               defaultName: 'React',
+                               exports: ['useState']},
+                           'react-dom': {
+                               defaultName: 'ReactDOM',
+                               exports: []}
+                       }
+                   };
+       
+                   const registration = await navigator.serviceWorker.register('sw.js?' + JSON.stringify(config));
+       
+                   await navigator.serviceWorker.ready;
+       
+                   const launch = async () => {
+                       await import("/src/index.jsx");
+                   };
+       
+                   // this launches the React app if the SW has been installed before or immediately after registration
+                   // https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#clientsclaim
+                   if (navigator.serviceWorker.controller) {
+                       await launch();
+                   } else {
+                       navigator.serviceWorker.addEventListener('controllerchange', launch);
+                   }
+       
+               } catch (error) {
+                   console.error('Service worker registration failed', error.stack);
+               }
+       
+           })();
+       } else {
+           alert('Service Worker is not supported');
+       }
+    </script>
+  
+  </body>
 </html>

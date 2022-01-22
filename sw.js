@@ -1,20 +1,42 @@
-const {globalMap} = JSON.parse((decodeURIComponent(self.location.search) || '?{}').substr(1));
+const {exportsMap} = JSON.parse((decodeURIComponent(self.location.search) || '?{}').substr(1));
 
+// TODO: Update to latest babel standalone. Using this version as its the 
+// version I have available
 importScripts('/js/babel/babel.min.js');
 
 //this is needed to activate the worker immediately without reload
 //@see https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle#clientsclaim
 self.addEventListener('activate', event => event.waitUntil(clients.claim()));
 
-const getGlobalByUrl = (url) => Object.keys(globalMap).reduce((res, key) => {
+// Returns the export map for a particular URL
+const getExportMapByUrl = (url) => Object.keys(exportsMap).reduce((res, key) => {
     if (res) return res;
-    if (matchUrl(url, key)) return globalMap[key];
+    if (matchUrl(url, key)) return exportsMap[key];
     return res;
 }, null);
+
+
+// Returns a list of export statements for a URL
+const getExportsForUrl = (url) => {
+    const {defaultName, exports} = getExportMapByUrl(url);
+    const defaultExport =  `export default window.${defaultName};\n`
+    const others = exports.map(e => `export let ${e} = window.${defaultName}.${e};`).join("\n")
+    return defaultExport + others;
+
+}
 
 const matchUrl = (url, key) => url.includes(`/${key}/`);
 
 const removeSpaces = str => str.split(/^ +/m).join('').trim();
+
+function base64Encode (buf) {
+    let string = '';
+    (new Uint8Array(buf)).forEach(
+        (byte) => { string += String.fromCharCode(byte) }
+    )
+    return btoa(string)
+}
+
 
 const headers = new Headers({
     'Content-Type': 'application/javascript'
@@ -33,7 +55,7 @@ self.addEventListener('fetch', (event) => {
 
     console.log('Req', url, ext);
 
-    if (globalMap && Object.keys(globalMap).some(key => matchUrl(url, key))) {
+    if (exportsMap && Object.keys(exportsMap).some(key => matchUrl(url, key))) {
         event.respondWith(
             fetch(url)
                 .then(response => response.text())
@@ -47,9 +69,30 @@ self.addEventListener('fetch', (event) => {
                         script.setAttribute('type', 'text/javascript');
                         script.appendChild(document.createTextNode(${JSON.stringify(body)}));
                         head.appendChild(script);
-                        export default window.${getGlobalByUrl(url)};
+                        ${getExportsForUrl(url)}
                     `), {headers}
                 ))
+        )
+    } else if (url.endsWith('.svg') || url.endsWith('.jpg') || url.endsWith('jpeg') || url.endsWith('png')) {
+        event.respondWith(
+            fetch(url)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => {
+                    const data = base64Encode(arrayBuffer)
+                    const contentType = {
+                        svg: 'image/svg+xml',
+                        jpg: 'image/jpg',
+                        jpeg: 'image/jpeg',
+                        png: 'image/png'}[url.split('.').pop().trim()];
+
+
+                    return (new Response(removeSpaces(`
+                            const dataUrl = "data:${contentType};base64,${data}";
+                            export default dataUrl; //TODO here we can export CSS module instead
+                        `),
+                        {headers})
+                    )
+                })
         )
     } else if (url.endsWith('.css')) {
         event.respondWith(
@@ -73,12 +116,13 @@ self.addEventListener('fetch', (event) => {
                 .then(response => response.text())
                 .then(body => new Response(
                     //TODO Cache
+                    //
                     Babel.transform(body, {
                         presets: [
                             'react',
                         ],
                         plugins: [
-//                            'syntax-dynamic-import'
+                            'transform-es2015-destructuring'
                         ],
                         sourceMaps: true
                     }).code,
