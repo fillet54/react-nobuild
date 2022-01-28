@@ -1,3 +1,11 @@
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+import { Icon } from './Icons';
 import logo from './logo.svg';
 import './App.css';
 
@@ -15,7 +23,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          <span>Learn React <Icon icon="thumbs-up" color="blue-500" /></span>
         </a>
       </header>
     </div>

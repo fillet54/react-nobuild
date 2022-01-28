@@ -94,7 +94,7 @@ self.addEventListener('fetch', (event) => {
                     )
                 })
         )
-    } else if (url.endsWith('.css')) {
+    } else if (url.endsWith('.css') && !(new URL(url).pathname.startsWith('/css'))) {
         event.respondWith(
             fetch(url)
                 .then(response => response.text())

@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <link rel="stylesheet" href="/css/font-awesome-4.7.0/css/font-awesome.min.css">
+  </head>
   <body>
   
     <div id="root"></div>
@@ -9,7 +12,9 @@
     {
       "imports": {
         "react": "/js/react/umd/react.production.min.js",
-        "react-dom": "/js/react-dom/umd/react-dom.production.min.js"
+        "react-dom": "/js/react-dom/umd/react-dom.production.min.js",
+        "react-router": "/js/react-router/umd/react-router.min.js",
+        "react-router-dom": "/js/react-router-dom/umd/react-router-dom.min.js"
       }
     }
     </script>
@@ -25,10 +30,23 @@
                        exportsMap: {
                            'react': {
                                defaultName: 'React',
-                               exports: ['useState']},
+                               exports: ['useState']
+                           },
                            'react-dom': {
                                defaultName: 'ReactDOM',
-                               exports: []}
+                               exports: []
+                           },
+                           'react-router': {
+                               defaultName: 'ReactRouter',
+                               exports: []
+                           },
+                           'react-router-dom': {
+                               defaultName: 'ReactRouterDOM',
+                               exports: ['BrowserRouter', 'HashRouter', 'Link', 'MemoryRouter', 'NavLink', 
+                                         'Prompt', 'Redirect', 'Route', 'Router', 'StaticRouter', 'Switch',
+                                         'generatePath', 'matchPath', 'useHistory', 'useLocation', 'useParams',
+                                         'useRouteMatch', 'withRouter']
+                           }
                        }
                    };
        
